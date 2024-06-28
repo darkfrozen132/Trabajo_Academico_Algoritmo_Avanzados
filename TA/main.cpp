@@ -15,30 +15,30 @@ struct Individual {
 };
 
 
-double calculate_standard_deviation(const vector<int>& bin_usage, int max_value_per_bin) {
-    double mean = 0.0;
+double calculate_standard_deviation(vector<int> bin_usage, int max_value_per_bin) {
+    double med = 0.0;
     int num_bins = bin_usage.size();
     vector<double> unused_space(num_bins);
 
-    
+    // Calcular el espacio no utilizado en cada mochila
     for (int i = 0; i < num_bins; ++i) {
         unused_space[i] = max_value_per_bin - bin_usage[i];
-        mean += unused_space[i];
+        med += unused_space[i];
     }
-    mean /= num_bins;
+    med =med/ num_bins;
 
-    
+    // Calcular la suma de las diferencias al cuadrado respecto a la media
     double variance = 0.0;
     for (int i = 0; i < num_bins; ++i) {
-        variance += (unused_space[i] - mean) * (unused_space[i] - mean);
+        variance += (unused_space[i] - med) * (unused_space[i] - med);
     }
-    variance /= num_bins;
+    variance =variance/ num_bins;
 
-    
+    // Retornar la desviación estándar
     return sqrt(variance);
 }
 
-void calculate_fitness(Individual& ind, const vector<int>& itemPool, const vector<int>& bin_capacities, int max_value_per_bin) {
+void calculate_fitness(Individual& ind,  vector<int> itemPool,  vector<int>bin_capacities, int max_value_per_bin) {
     vector<int> bin_usage(bin_capacities.size(), 0);
 
     for (int i = 0; i < ind.chromosome.size(); ++i) {
@@ -51,19 +51,19 @@ void calculate_fitness(Individual& ind, const vector<int>& itemPool, const vecto
 
     for (int i = 0; i < bin_capacities.size(); ++i) {
         if (bin_usage[i] > max_value_per_bin) {
-            ind.fitness = 0;  // Penalización fuerte para cualquier exceso
+            ind.fitness = 0; // Si mochila sobrepasa el maximo valor, fitness automaticamente 0
             return;
         } else if (bin_usage[i] == max_value_per_bin) {
-            full_bins += 1;
+            full_bins += 1;//Calcula las mochilas completamente llenas
         }
     }
 
-    // Calcular la desviación estándar de los espacios sobrantes
+    // Calcular la deviacion estnadar para elegir las mochilas con espacio sobrantes mas lejos uno de otros
     double std_dev = calculate_standard_deviation(bin_usage, max_value_per_bin);
-    ind.fitness = full_bins * 10000 + std_dev;  // Beneficiar mayor desviación estándar y mochilas llenas
+    ind.fitness = full_bins * 10000 + std_dev; //Asignar un gran valor a cada mochila llena
 }
 
-void evaluate_population(vector<Individual>& population, const vector<int>& itemPool, const vector<int>& bin_capacities, int max_value_per_bin) {
+void evaluate_population(vector<Individual>& population,  vector<int>& itemPool,  vector<int>& bin_capacities, int max_value_per_bin) {
     for (Individual& ind : population) {
         calculate_fitness(ind, itemPool, bin_capacities, max_value_per_bin);
     }
@@ -156,7 +156,7 @@ vector<Individual> select_survivors_ranking(vector<Individual>& population, vect
     return next_population;
 }
 
-void genetic_algorithm(vector<Individual>& population, const vector<int>& itemPool, const vector<int>& bin_capacities, int max_value_per_bin, int generations, double mutation_rate, int tournament_size){
+void genetic_algorithm(vector<Individual>& population, vector<int>& itemPool,vector<int>& bin_capacities, int max_value_per_bin, int generations, double mutation_rate, int tournament_size){
     int popsize = population.size();
     evaluate_population(population, itemPool, bin_capacities, max_value_per_bin); 
     vector<int> bestfitness;
@@ -194,7 +194,7 @@ void genetic_algorithm(vector<Individual>& population, const vector<int>& itemPo
             }
             if ((double)rand() / RAND_MAX < mutation_rate) { // intenta mutar el hijo 2 de acuerdo a la tasa de mutacion
                 mutation_swap(children.second, bin_capacities.size());
-                //mutation_insercion(children.second);
+               // mutation_insercion(children.second);
                 
             }
             offspring_population.push_back(children.first);  // agrega el hijo 1 a la poblacion descendencia
@@ -240,7 +240,7 @@ int main() {
 
     const int NUM_ITEMS = 10;
     const int MAX_ITEM_WEIGHT = 150;
-    const int NUM_BINS = 5;
+    const int NUM_BINS = 7;
     
     const int MAX_VALUE_PER_BIN = 150;
 
@@ -253,7 +253,7 @@ int main() {
         cout << "Item " << i << ": Weight = " << itemPool[i] << endl; // Imprime ítem
     }
 
-    vector<int> bin_capacities(NUM_BINS, 150);
+    vector<int> bin_capacities(NUM_BINS);
 
     const int POPSIZE = 100;
     const int GENERATIONS = 200;
@@ -261,10 +261,11 @@ int main() {
     const int TOURNAMENT_SIZE = 3;
 
     // inicializa poblacion
-    vector<Individual> population = init_population(POPSIZE, NUM_ITEMS, NUM_BINS);
+    
 
-    // corre el algoritmo genético
-    genetic_algorithm(population, itemPool, bin_capacities, MAX_VALUE_PER_BIN, GENERATIONS, MUTATION_RATE, TOURNAMENT_SIZE);
-
+    for(int i=0;i<10;i++){
+        vector<Individual> population = init_population(POPSIZE, NUM_ITEMS, NUM_BINS);
+     genetic_algorithm(population, itemPool, bin_capacities, MAX_VALUE_PER_BIN, GENERATIONS, MUTATION_RATE, TOURNAMENT_SIZE);
+    }
     return 0;
 }
