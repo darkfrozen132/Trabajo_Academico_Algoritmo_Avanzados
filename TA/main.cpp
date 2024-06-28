@@ -20,33 +20,33 @@ double calculate_standard_deviation(vector<int> bin_usage, int max_value_per_bin
     int num_bins = bin_usage.size();
     vector<double> unused_space(num_bins);
 
-    // Calcular el espacio no utilizado en cada mochila
-    for (int i = 0; i < num_bins; ++i) {
+    // Calcula el espacio sobrante en cada mochila
+    for (int i=0;i<num_bins;i++) {
         unused_space[i] = max_value_per_bin - bin_usage[i];
         med += unused_space[i];
     }
-    med =med/ num_bins;
+    med=med/num_bins;
 
-    // Calcular la suma de las diferencias al cuadrado respecto a la media
-    double variance = 0.0;
-    for (int i = 0; i < num_bins; ++i) {
-        variance += (unused_space[i] - med) * (unused_space[i] - med);
+    // Calcula la varianza
+    double var = 0.0;
+    for (int i = 0; i < num_bins; i++) {
+        var =var+ pow((unused_space[i] - med),2) ;
     }
-    variance =variance/ num_bins;
+    var=var/num_bins;
 
-    // Retornar la desviación estándar
-    return sqrt(variance);
+    
+    return sqrt(var);
 }
 
 void calculate_fitness(Individual& ind,  vector<int> itemPool,  vector<int>bin_capacities, int max_value_per_bin) {
     vector<int> bin_usage(bin_capacities.size(), 0);
-
+    //suma a cada mochila su item pool
     for (int i = 0; i < ind.chromosome.size(); ++i) {
         int bin_index = ind.chromosome[i];
         bin_usage[bin_index] += itemPool[i];
     }
 
-    int total_overflow = 0;
+    //mochilas llenas
     int full_bins = 0;
 
     for (int i = 0; i < bin_capacities.size(); ++i) {
@@ -54,13 +54,13 @@ void calculate_fitness(Individual& ind,  vector<int> itemPool,  vector<int>bin_c
             ind.fitness = 0; // Si mochila sobrepasa el maximo valor, fitness automaticamente 0
             return;
         } else if (bin_usage[i] == max_value_per_bin) {
-            full_bins += 1;//Calcula las mochilas completamente llenas
+            full_bins += 1;//Calcula la cantidad de  mochilas completamente llenas
         }
     }
 
-    // Calcular la deviacion estnadar para elegir las mochilas con espacio sobrantes mas lejos uno de otros
-    double std_dev = calculate_standard_deviation(bin_usage, max_value_per_bin);
-    ind.fitness = full_bins * 10000 + std_dev; //Asignar un gran valor a cada mochila llena
+    // Calcular la deviacion estandar para elegir las mochilas con espacio sobrantes mas lejos uno de otros
+    double dev_estan = calculate_standard_deviation(bin_usage, max_value_per_bin);
+    ind.fitness = full_bins * 10000 + dev_estan; //Asignar un gran valor a cada mochila llena para que esa solucion prevalezca
 }
 
 void evaluate_population(vector<Individual>& population,  vector<int>& itemPool,  vector<int>& bin_capacities, int max_value_per_bin) {
@@ -185,7 +185,7 @@ void genetic_algorithm(vector<Individual>& population, vector<int>& itemPool,vec
         vector<Individual> offspring_population;
         for (auto& parents : mating_pool) {  // por cada pareja del mating pool
             pair<Individual, Individual> children = crossover_uniform(parents.first, parents.second);  // cruzamiento uniforme
-            //pair<Individual, Individual> children = crossover_onepoint(parents.first, parents.second);  // cruzamiento uniforme
+            //pair<Individual, Individual> children = crossover_onepoint(parents.first, parents.second);  // cruzamiento un punto
 
             if ((double)rand() / RAND_MAX < mutation_rate) { // intenta mutar el hijo 1 de acuerdo a la tasa de mutacion
                 mutation_swap(children.first, bin_capacities.size());
@@ -240,7 +240,7 @@ int main() {
 
     const int NUM_ITEMS = 10;
     const int MAX_ITEM_WEIGHT = 150;
-    const int NUM_BINS = 7;
+    const int NUM_BINS = 5;
     
     const int MAX_VALUE_PER_BIN = 150;
 
@@ -250,7 +250,7 @@ int main() {
     for (int i = 0; i < NUM_ITEMS; ++i) {
         int weight = (rand() % (MAX_ITEM_WEIGHT / 10) + 1) * 10;
         itemPool.emplace_back(weight);
-        cout << "Item " << i << ": Weight = " << itemPool[i] << endl; // Imprime ítem
+        cout << "Item " << i << ": Altura = " << itemPool[i] << endl; // Imprime ítem
     }
 
     vector<int> bin_capacities(NUM_BINS);
@@ -259,12 +259,14 @@ int main() {
     const int GENERATIONS = 200;
     const double MUTATION_RATE = 0.8;
     const int TOURNAMENT_SIZE = 3;
-
-    // inicializa poblacion
+    const int NUM_INTER=10;
+    
     
 
-    for(int i=0;i<10;i++){
+    for(int i=0;i<NUM_INTER;i++){
+        // inicializa poblacion
         vector<Individual> population = init_population(POPSIZE, NUM_ITEMS, NUM_BINS);
+        //algoritmo genetico
      genetic_algorithm(population, itemPool, bin_capacities, MAX_VALUE_PER_BIN, GENERATIONS, MUTATION_RATE, TOURNAMENT_SIZE);
     }
     return 0;
