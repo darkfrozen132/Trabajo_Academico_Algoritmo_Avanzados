@@ -20,21 +20,21 @@ double calculate_standard_deviation(const vector<int>& bin_usage, int max_value_
     int num_bins = bin_usage.size();
     vector<double> unused_space(num_bins);
 
-    // Calcular el espacio no utilizado en cada mochila
+    
     for (int i = 0; i < num_bins; ++i) {
         unused_space[i] = max_value_per_bin - bin_usage[i];
         mean += unused_space[i];
     }
     mean /= num_bins;
 
-    // Calcular la suma de las diferencias al cuadrado respecto a la media
+    
     double variance = 0.0;
     for (int i = 0; i < num_bins; ++i) {
         variance += (unused_space[i] - mean) * (unused_space[i] - mean);
     }
     variance /= num_bins;
 
-    // Retornar la desviación estándar
+    
     return sqrt(variance);
 }
 
